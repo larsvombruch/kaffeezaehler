@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:kaffeezaehler/model/data/Users.dart';
-import 'package:kaffeezaehler/model/services/FirebaseHandler.dart';
+import 'package:kaffeekanne_web/model/services/FirebaseHandler.dart';
 
 class SelectionCard extends StatefulWidget {
   final String name;

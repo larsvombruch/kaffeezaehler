@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:kaffeezaehler/view/HomeScreen.dart';
+import 'package:kaffeekanne_web/view/HomeScreen.dart';
 
 void main() {
   runApp(MaterialApp(
