@@ -29,15 +29,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        actions: [
+          IconButton(icon: Icon(Icons.settings), onPressed: () {}),
+          IconButton(icon: Icon(Icons.menu), onPressed: () {}),
+        ],
+        title: Text("Dometic Waeco Kaffeezähler"),
         toolbarHeight: 50,
         elevation: 0,
         backgroundColor: painting.Color(0xFF004E98),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
+      body: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            child: Container(
               color: painting.Color(0xFF004E98),
               height: 250,
               width: size.width,
@@ -58,11 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: charts.ChartTitle(text: "Top 3 Kaffeetrinker"),
                       backgroundColor: Colors.white,
                       tooltipBehavior: charts.TooltipBehavior(
-                        canShowMarker: false,
-                        enable: true,
-                        activationMode: charts.ActivationMode.doubleTap,
-                        format: 'point.y',
-                        header: 'Kaffeetassen',
+                        enable: false,
                       ),
                       primaryXAxis: charts.CategoryAxis(
                         majorGridLines: charts.MajorGridLines(width: 0),
@@ -101,36 +102,47 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   )),
             ),
-            Container(
-              padding: EdgeInsets.only(top: 20),
-              child: Container(
-                child: Text(
-                  "Kaffee hinzufügen",
-                  style: TextStyle(fontSize: 20),
+          ),
+          Container(
+            height: 8,
+          ),
+          Expanded(
+              child: SingleChildScrollView(
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Container(
+                    child: Text(
+                      "Kaffee hinzufügen",
+                      style: TextStyle(fontSize: 20),
+                    ),
+                  ),
                 ),
-              ),
+                Container(
+                  padding: EdgeInsets.all(20),
+                  child: GridView.count(
+                    childAspectRatio: .7,
+                    shrinkWrap: true,
+                    clipBehavior: Clip.none,
+                    crossAxisCount: 2,
+                    physics: NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 30.0,
+                    crossAxisSpacing: 30.0,
+                    children: List.generate(users.length, (index) {
+                      return SelectionCard(
+                        name: users[index].name,
+                        onSubmitted: () {
+                          onSubmitted();
+                        },
+                      );
+                    }),
+                  ),
+                )
+              ],
             ),
-            Container(
-              padding: EdgeInsets.all(20),
-              child: GridView.count(
-                shrinkWrap: true,
-                clipBehavior: Clip.none,
-                crossAxisCount: 2,
-                physics: NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 30.0,
-                crossAxisSpacing: 30.0,
-                children: List.generate(users.length, (index) {
-                  return SelectionCard(
-                    name: users[index].name,
-                    onSubmitted: () {
-                      onSubmitted();
-                    },
-                  );
-                }),
-              ),
-            )
-          ],
-        ),
+          ))
+        ],
       ),
     );
   }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:kaffeekanne_web/model/services/FirebaseHandler.dart';
 
 class SelectionCard extends StatefulWidget {
@@ -16,8 +15,13 @@ class SelectionCard extends StatefulWidget {
 }
 
 class _SelectionCardState extends State<SelectionCard> {
+  List<Image> images = [];
+
   @override
   void initState() {
+    images.add(Image.asset("assets/images/coffee-beans.png"));
+    images.add(Image.asset("assets/images/coffee-mug.png"));
+    images.add(Image.asset("assets/images/coffee-pot.png"));
     super.initState();
   }
 
@@ -27,34 +31,35 @@ class _SelectionCardState extends State<SelectionCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 100,
+      height: 150,
       width: 50,
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             child: Text(
               this.widget.name,
-              style: TextStyle(fontSize: 14),
             ),
-            padding: EdgeInsets.only(bottom: 15),
+            padding: EdgeInsets.only(bottom: 15, top: 20),
           ),
-          Container(
-            alignment: Alignment.center,
-            child: getImage(),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.only(top: 20),
+              alignment: Alignment.center,
+              child: getImage(),
+            ),
           ),
-          Container(
-            padding: EdgeInsets.only(bottom: 10, top: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  child: Transform.scale(
-                    scale: 1.4,
+          Expanded(
+            child: Container(
+              alignment: Alignment.center,
+              padding: EdgeInsets.only(bottom: 10, top: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
                     child: IconButton(
                       icon: Icon(
-                        Icons.add_circle_outline,
+                        Icons.remove_circle_outline,
                         color: Color(0xFF004E98),
                       ),
                       onPressed: () {
@@ -62,16 +67,13 @@ class _SelectionCardState extends State<SelectionCard> {
                       },
                     ),
                   ),
-                ),
-                Container(
-                  child: Text(
-                    "$_coffeeCount",
-                    style: TextStyle(fontSize: 16),
+                  Container(
+                    child: Text(
+                      "$_coffeeCount",
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
-                ),
-                Container(
-                  child: Transform.scale(
-                    scale: 1.4,
+                  Container(
                     child: IconButton(
                       icon: Icon(
                         Icons.add_circle_outline,
@@ -82,21 +84,25 @@ class _SelectionCardState extends State<SelectionCard> {
                       },
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          Container(
-            child: FlatButton(
-              color: Color(0xFF004E98),
-              child: Text(
-                "Bestätigen",
-                style: TextStyle(color: Colors.white, fontSize: 12),
+          Expanded(
+            child: Container(
+              width: 130,
+              padding: EdgeInsets.only(bottom: 20),
+              child: FlatButton(
+                color: Color(0xFF004E98),
+                child: Text(
+                  "Bestätigen",
+                  style: TextStyle(color: Colors.white, fontSize: 12),
+                ),
+                onPressed: () async {
+                  await onSubmitted();
+                  this.widget.onSubmitted();
+                },
               ),
-              onPressed: () async {
-                await onSubmitted();
-                this.widget.onSubmitted();
-              },
             ),
           )
         ],
@@ -130,23 +136,11 @@ class _SelectionCardState extends State<SelectionCard> {
 
   Widget getImage() {
     if (_coffeeCount <= 2) {
-      return SvgPicture.asset(
-        "web/assets/images/coffee-beans.svg",
-        height: 50,
-        width: 50,
-      );
+      return images[0];
     } else if (_coffeeCount > 2 && _coffeeCount <= 5) {
-      return SvgPicture.asset(
-        "web/assets/images/coffee-mug.svg",
-        height: 50,
-        width: 50,
-      );
+      return images[1];
     } else {
-      return SvgPicture.asset(
-        "web/assets/images/coffee-pot.svg",
-        height: 50,
-        width: 50,
-      );
+      return images[2];
     }
   }
 
