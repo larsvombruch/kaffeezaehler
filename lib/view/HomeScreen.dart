@@ -122,6 +122,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: List.generate(users.length, (index) {
                   return SelectionCard(
                     name: users[index].name,
+                    onSubmitted: () {
+                      onSubmitted();
+                    },
                   );
                 }),
               ),
@@ -159,6 +162,14 @@ class _HomeScreenState extends State<HomeScreen> {
       tmpUsers = [];
     }
     return tmpUsers;
+  }
+
+  void onSubmitted() async {
+    await getMostCafes().then((value) {
+      setState(() {
+        top3 = value;
+      });
+    });
   }
 
   void initializeUsers() async {
