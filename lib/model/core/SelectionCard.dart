@@ -16,6 +16,7 @@ class SelectionCard extends StatefulWidget {
 
 class _SelectionCardState extends State<SelectionCard> {
   List<Image> images = [];
+  bool darkMode = false;
 
   @override
   void initState() {
@@ -30,6 +31,9 @@ class _SelectionCardState extends State<SelectionCard> {
   int _coffeeCount = 0;
   @override
   Widget build(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      darkMode = true;
+    }
     return Container(
       height: 150,
       width: 50,
@@ -39,6 +43,7 @@ class _SelectionCardState extends State<SelectionCard> {
           Container(
             child: Text(
               this.widget.name,
+              style: TextStyle(color: darkMode ? Colors.white : Colors.black),
             ),
             padding: EdgeInsets.only(bottom: 15, top: 20),
           ),
@@ -57,31 +62,39 @@ class _SelectionCardState extends State<SelectionCard> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.remove_circle_outline,
-                        color: Color(0xFF004E98),
+                    child: Transform.scale(
+                      scale: 1.2,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.remove_circle_outline,
+                          color: Color(0xFF004E98),
+                        ),
+                        onPressed: () {
+                          onMinusPressed();
+                        },
                       ),
-                      onPressed: () {
-                        onMinusPressed();
-                      },
                     ),
                   ),
                   Container(
                     child: Text(
                       "$_coffeeCount",
-                      style: TextStyle(fontSize: 16),
+                      style: TextStyle(
+                          fontSize: 16,
+                          color: darkMode ? Colors.white : Colors.black),
                     ),
                   ),
                   Container(
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.add_circle_outline,
-                        color: Color(0xFF004E98),
+                    child: Transform.scale(
+                      scale: 1.2,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: Color(0xFF004E98),
+                        ),
+                        onPressed: () {
+                          onPlusPressed();
+                        },
                       ),
-                      onPressed: () {
-                        onPlusPressed();
-                      },
                     ),
                   ),
                 ],
@@ -92,6 +105,7 @@ class _SelectionCardState extends State<SelectionCard> {
             child: Container(
               width: 130,
               padding: EdgeInsets.only(bottom: 20),
+              // ignore: deprecated_member_use
               child: FlatButton(
                 color: Color(0xFF004E98),
                 child: Text(
@@ -108,7 +122,7 @@ class _SelectionCardState extends State<SelectionCard> {
         ],
       ),
       decoration: BoxDecoration(
-          color: Colors.white,
+          color: darkMode ? Colors.black45 : Colors.white,
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(.15),
@@ -125,7 +139,8 @@ class _SelectionCardState extends State<SelectionCard> {
     await firebaseHandler.readData(this.widget.name).then((value) {
       baseClicks = value['clicks'];
     });
-    await firebaseHandler.writeData(this.widget.name, <String, dynamic>{
+    await firebaseHandler
+        .writeData("userdata", this.widget.name, <String, dynamic>{
       'clicks': baseClicks + _coffeeCount,
     });
     setState(() {

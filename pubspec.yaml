@@ -33,6 +33,7 @@ dependencies:
   firebase_core: ^0.7.0
   syncfusion_flutter_charts: ^18.4.34
   flutter_svg: ^0.19.2+1
+  pinput: ^1.0.0
 
 dev_dependencies:
   flutter_test:
