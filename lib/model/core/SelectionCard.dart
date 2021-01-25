@@ -15,14 +15,10 @@ class SelectionCard extends StatefulWidget {
 }
 
 class _SelectionCardState extends State<SelectionCard> {
-  List<Image> images = [];
   bool darkMode = false;
 
   @override
   void initState() {
-    images.add(Image.asset("assets/images/coffee-beans.png"));
-    images.add(Image.asset("assets/images/coffee-mug.png"));
-    images.add(Image.asset("assets/images/coffee-pot.png"));
     super.initState();
   }
 
@@ -51,7 +47,7 @@ class _SelectionCardState extends State<SelectionCard> {
             child: Container(
               padding: EdgeInsets.only(top: 20),
               alignment: Alignment.center,
-              child: getImage(),
+              child: Image.asset("assets/images/coffee-mug.png"),
             ),
           ),
           Expanded(
@@ -147,16 +143,6 @@ class _SelectionCardState extends State<SelectionCard> {
       _coffeeCount = 0;
     });
     return true;
-  }
-
-  Widget getImage() {
-    if (_coffeeCount <= 2) {
-      return images[0];
-    } else if (_coffeeCount > 2 && _coffeeCount <= 5) {
-      return images[1];
-    } else {
-      return images[2];
-    }
   }
 
   void onPlusPressed() {
