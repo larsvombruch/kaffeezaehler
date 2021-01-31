@@ -1,11 +1,13 @@
 class Users {
   int clicks;
   String name;
-  int record;
+  bool paymentRequired;
+  int paidAt;
 
   Users({
     this.clicks,
     this.name,
-    this.record,
+    this.paymentRequired,
+    this.paidAt,
   });
 }

@@ -4,11 +4,15 @@ import 'package:kaffeekanne_web/model/data/Users.dart';
 class FirebaseHandler {
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
 
-  Future readData([String document, String collection]) async {
-    if (document != null) {
+  Future readData({String document, String collection}) async {
+    if (document != null && collection == null) {
       return await firebaseFirestore.collection("userdata").doc(document).get();
-    } else {
+    } else if (collection == null && document == null) {
       return await firebaseFirestore.collection("userdata").get();
+    } else if (collection != null && document == null) {
+      return await firebaseFirestore.collection(collection).get();
+    } else {
+      return await firebaseFirestore.collection(collection).doc(document).get();
     }
   }
 
@@ -17,7 +21,7 @@ class FirebaseHandler {
   }
 
   Future writeData(
-      [String collection, String document, Map<String, dynamic> data]) async {
+      {String collection, String document, Map<String, dynamic> data}) async {
     await firebaseFirestore.collection(collection).doc(document).update(data);
   }
 
@@ -30,12 +34,13 @@ class FirebaseHandler {
         users.add(new Users(
           clicks: element['clicks'],
           name: element['name'],
-          record: element['record'],
         ));
       });
       users.forEach((element) async {
         await writeData(
-            "userdata", element.name, <String, dynamic>{'clicks': 0});
+            collection: "userdata",
+            document: element.name,
+            data: <String, dynamic>{'clicks': 0});
       });
     });
   }
@@ -44,7 +49,11 @@ class FirebaseHandler {
     await firebaseFirestore.collection("userdata").doc(document).delete();
   }
 
-  Future addDocument(String document, Map<String, dynamic> data) async {
+  Future addDocument(
+      {String collection, String document, Map<String, dynamic> data}) async {
+    if (collection != null) {
+      await firebaseFirestore.collection(collection).doc(document).set(data);
+    }
     await firebaseFirestore.collection("userdata").doc(document).set(data);
   }
 

@@ -14,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Users> users = [];
-  List<Users> top3 = [];
+  List<Users> top5 = [];
   TextEditingController controller = TextEditingController();
   final FirebaseHandler firebaseHandler = FirebaseHandler();
 
@@ -37,6 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
     "dec"
   ];
 
+  List<String> collectionList = [
+    "userdata",
+    "bfthis",
+    "bfbfthis",
+    "bfbfbfthis",
+    "bfbfbfbfthis",
+  ];
+
   @override
   void initState() {
     initializeUsers();
@@ -49,9 +57,12 @@ class _HomeScreenState extends State<HomeScreen> {
     await firebaseHandler.readMonth().then((value) async {
       lastMonth = value["last"];
       if (months[DateTime.now().month - 1] != value["last"]) {
-        await firebaseHandler.writeData("security", "month", <String, dynamic>{
-          'last': months[DateTime.now().month - 1],
-        });
+        await firebaseHandler.writeData(
+            collection: "security",
+            document: "month",
+            data: <String, dynamic>{
+              'last': months[DateTime.now().month - 1],
+            });
         handleNewMonth();
       }
     });
@@ -60,22 +71,50 @@ class _HomeScreenState extends State<HomeScreen> {
   void handleNewMonth() async {
     users.forEach((element) async {
       await firebaseHandler.writeData(
-        "userdata",
-        element.name,
-        <String, dynamic>{'record': element.clicks},
+        collection: "bfthis",
+        document: element.name,
+        data: <String, dynamic>{'clicks': element.clicks},
       );
+    });
+    await firebaseHandler.readData(collection: "bfthis").then((value) {
+      List tmp = value.docs.map((doc) => doc.data()).toList();
+      tmp.forEach((element) async {
+        await firebaseHandler.writeData(
+            collection: "bfbfthis",
+            document: element.name,
+            data: {'clicks': element.clicks});
+      });
+    });
+    await firebaseHandler.readData(collection: "bfbfthis").then((value) {
+      List tmp = value.docs.map((doc) => doc.data()).toList();
+      tmp.forEach((element) async {
+        await firebaseHandler.writeData(
+            collection: "bfbfbfthis",
+            document: element.name,
+            data: {'clicks': element.clicks});
+      });
+    });
+    await firebaseHandler.readData(collection: "bfbfbfthis").then((value) {
+      List tmp = value.docs.map((doc) => doc.data()).toList();
+      tmp.forEach((element) async {
+        await firebaseHandler.writeData(
+            collection: "bfbfbfbfthis",
+            document: element.name,
+            data: {'clicks': element.clicks});
+      });
     });
     await firebaseHandler.resetClicks();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (Theme.of(context).brightness == Brightness.dark) {
+    if (MediaQuery.platformBrightnessOf(context) == Brightness.dark) {
       darkMode = true;
     }
     Size size = MediaQuery.of(context).size;
     return WillPopScope(
         child: Scaffold(
+          backgroundColor: darkMode ? Color(0xFF363333) : Colors.white,
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
             automaticallyImplyLeading: false,
@@ -131,18 +170,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ));
                           },
                           title: charts.ChartTitle(
-                              text: "Top 3 Kaffeetrinker / Zusammenfassung"),
+                              text: "Top 5 Kaffeetrinker / Zusammenfassung",
+                              textStyle: TextStyle(
+                                  color:
+                                      darkMode ? Colors.white : Colors.black)),
                           tooltipBehavior: charts.TooltipBehavior(
                             enable: false,
                           ),
                           backgroundColor:
                               darkMode ? Colors.black45 : Colors.white,
                           primaryXAxis: charts.CategoryAxis(
+                            labelIntersectAction:
+                                charts.AxisLabelIntersectAction.multipleRows,
                             majorGridLines: charts.MajorGridLines(width: 0),
                             majorTickLines: charts.MajorTickLines(width: 0),
                             minorGridLines: charts.MinorGridLines(width: 0),
                             labelStyle: painting.TextStyle(
-                                color: darkMode ? Colors.white : Colors.black),
+                                color: darkMode ? Colors.white : Colors.black,
+                                fontSize: 12),
                             axisLine: charts.AxisLine(width: 0),
                           ),
                           primaryYAxis: charts.NumericAxis(
@@ -158,8 +203,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           plotAreaBorderWidth: 0,
                           series: <charts.ColumnSeries<Users, String>>[
                             charts.ColumnSeries<Users, String>(
-                              dataLabelSettings:
-                                  charts.DataLabelSettings(isVisible: true),
+                              dataLabelSettings: charts.DataLabelSettings(
+                                isVisible: true,
+                                textStyle: TextStyle(
+                                    color:
+                                        darkMode ? Colors.white : Colors.black),
+                              ),
                               width: .5,
                               sortFieldValueMapper: (Users user, _) =>
                                   user.clicks,
@@ -168,10 +217,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                 topRight: Radius.circular(10),
                               ),
                               sortingOrder: charts.SortingOrder.descending,
-                              color: Colors.orange,
-                              dataSource: top3,
+                              dataSource: top5,
                               xValueMapper: (Users user, _) => user.name,
                               yValueMapper: (Users user, _) => user.clicks,
+                              pointColorMapper: (Users user, _) =>
+                                  user.paymentRequired
+                                      ? Colors.red
+                                      : Colors.orange,
                             ),
                           ],
                         ),
@@ -188,10 +240,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     Container(
                       padding: EdgeInsets.only(top: 20),
                       child: Container(
-                        child: Text(
-                          "Kaffee hinzufügen",
-                          style: TextStyle(fontSize: 20),
-                        ),
+                        child: Text("Kaffee hinzufügen",
+                            style: TextStyle(
+                                fontSize: 20,
+                                color: darkMode ? Colors.white : Colors.black)),
                       ),
                     ),
                     Container(
@@ -233,7 +285,8 @@ class _HomeScreenState extends State<HomeScreen> {
         tmpUsers.add(Users(
           name: element['name'],
           clicks: element['clicks'],
-          record: element['record'],
+          paymentRequired: element['paymentRequired'],
+          paidAt: element['paidAt'],
         ));
       });
 
@@ -241,8 +294,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     int _i = 0;
-    if (tmpUsers.length > 3) {
-      tmpUsers.removeRange(0, tmpUsers.length - 3);
+    if (tmpUsers.length > 5) {
+      tmpUsers.removeRange(0, tmpUsers.length - 5);
     }
 
     tmpUsers.forEach((element) {
@@ -259,34 +312,57 @@ class _HomeScreenState extends State<HomeScreen> {
   void onSubmitted() async {
     await getMostCafes().then((value) {
       setState(() {
-        top3 = value;
+        top5 = value;
       });
     });
   }
 
   void initializeUsers() async {
+    await firebaseHandler.readData().then((value) {
+      List tmp2 = [];
+      tmp2 = value.docs.map((doc) => doc.data()).toList();
+      tmp2.forEach((element) async {
+        if (element['clicks'] - element['paidAt'] >= 50) {
+          await firebaseHandler.writeData(
+              collection: "userdata",
+              document: element['name'],
+              data: <String, dynamic>{
+                'paymentRequired': true,
+              });
+        } else {
+          await firebaseHandler.writeData(
+              collection: "userdata",
+              document: element['name'],
+              data: <String, dynamic>{
+                'paymentRequired': false,
+              });
+        }
+      });
+    });
     List tmp = [];
     await firebaseHandler.readData().then((value) {
       tmp = value.docs.map((doc) => doc.data()).toList();
+
       tmp.forEach((element) {
         setState(() {
           users.add(Users(
             name: element['name'],
             clicks: element['clicks'],
-            record: element['record'],
+            paymentRequired: element['paymentRequired'],
+            paidAt: element['paidAt'],
           ));
         });
       });
     });
     await getMostCafes().then((value) {
       setState(() {
-        top3 = value;
+        top5 = value;
       });
     });
   }
 
   void updateClicks(String username, int addedClicks) async {
-    await firebaseHandler.readData(username).then((value) {
+    await firebaseHandler.readData(document: username).then((value) {
       users.forEach((element) {
         if (element.name == username) {
           setState(() {
@@ -298,14 +374,14 @@ class _HomeScreenState extends State<HomeScreen> {
     users.forEach((element) async {
       if (element.name == username) {
         await firebaseHandler.writeData(
-          "userdata",
-          username,
-          {'clicks': element.clicks + addedClicks},
+          collection: "userdata",
+          document: username,
+          data: {'clicks': element.clicks + addedClicks},
         );
 
         await getMostCafes().then((value) {
           setState(() {
-            top3 = value;
+            top5 = value;
           });
         });
 

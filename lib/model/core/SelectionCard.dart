@@ -27,7 +27,7 @@ class _SelectionCardState extends State<SelectionCard> {
   int _coffeeCount = 0;
   @override
   Widget build(BuildContext context) {
-    if (Theme.of(context).brightness == Brightness.dark) {
+    if (MediaQuery.platformBrightnessOf(context) == Brightness.dark) {
       darkMode = true;
     }
     return Container(
@@ -45,7 +45,7 @@ class _SelectionCardState extends State<SelectionCard> {
           ),
           Expanded(
             child: Container(
-              padding: EdgeInsets.only(top: 20),
+              padding: EdgeInsets.only(top: 20, left: 10),
               alignment: Alignment.center,
               child: Image.asset("assets/images/coffee-mug.png"),
             ),
@@ -118,7 +118,7 @@ class _SelectionCardState extends State<SelectionCard> {
         ],
       ),
       decoration: BoxDecoration(
-          color: darkMode ? Colors.black45 : Colors.white,
+          color: darkMode ? Color(0xFF0a0a0a) : Colors.white,
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(.15),
@@ -131,18 +131,24 @@ class _SelectionCardState extends State<SelectionCard> {
   }
 
   Future onSubmitted() async {
-    int baseClicks = 0;
-    await firebaseHandler.readData(this.widget.name).then((value) {
-      baseClicks = value['clicks'];
-    });
-    await firebaseHandler
-        .writeData("userdata", this.widget.name, <String, dynamic>{
-      'clicks': baseClicks + _coffeeCount,
-    });
-    setState(() {
-      _coffeeCount = 0;
-    });
-    return true;
+    if (_coffeeCount != 0) {
+      int baseClicks = 0;
+      await firebaseHandler.readData(document: this.widget.name).then((value) {
+        baseClicks = value['clicks'];
+      });
+      await firebaseHandler.writeData(
+          collection: "userdata",
+          document: this.widget.name,
+          data: <String, dynamic>{
+            'clicks': baseClicks + _coffeeCount,
+          });
+      setState(() {
+        _coffeeCount = 0;
+      });
+      return true;
+    } else {
+      return false;
+    }
   }
 
   void onPlusPressed() {

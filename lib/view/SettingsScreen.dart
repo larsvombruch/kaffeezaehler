@@ -38,11 +38,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           barrierDismissible: false,
           context: context,
           builder: (context) {
-            if (Theme.of(context).brightness == Brightness.dark) {
-              darkMode = true;
-            }
             return WillPopScope(
                 child: AlertDialog(
+                    backgroundColor: Color(0xFF363333),
                     actions: [
                       Container(
                         padding: EdgeInsets.all(15),
@@ -58,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Text(
                             "Abbrechen",
                             style: TextStyle(
-                              color: darkMode ? Colors.white : Colors.black,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -72,12 +70,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Container(
-                              child: Text("PIN eingeben"),
+                              child: Text(
+                                "PIN eingeben",
+                                style: TextStyle(color: Colors.white),
+                              ),
                               padding: EdgeInsets.only(bottom: 40),
                             ),
                             Container(
                               height: 100,
                               child: PinPut(
+                                textStyle: TextStyle(
+                                    color:
+                                        darkMode ? Colors.white : Colors.black),
                                 keyboardType: TextInputType.number,
                                 autovalidateMode:
                                     AutovalidateMode.onUserInteraction,
@@ -122,6 +126,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     Navigator.pop(context);
                                   } else {
                                     setState(() => wrong = true);
+                                    Future.delayed(Duration(milliseconds: 500),
+                                        () {
+                                      setState(() => wrong = false);
+                                    });
                                   }
                                 },
                               ),
@@ -144,7 +152,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           users.add(Users(
             name: element['name'],
             clicks: element['clicks'],
-            record: element['record'],
+            paymentRequired: element['paymentRequired'],
+            paidAt: element['paidAt'],
           ));
         });
       });
@@ -153,9 +162,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.platformBrightnessOf(context) == Brightness.dark) {
+      darkMode = true;
+    }
     Size size = MediaQuery.of(context).size;
     return WillPopScope(
         child: Scaffold(
+          backgroundColor: darkMode ? Color(0xFF363333) : Colors.white,
           resizeToAvoidBottomInset: false,
           appBar: AppBar(
             automaticallyImplyLeading: false,
@@ -171,7 +184,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   }),
               IconButton(icon: Icon(Icons.settings), onPressed: () {}),
             ],
-            title: Text("Dometic Kaffeezähler"),
+            title: Text(
+              "Dometic Kaffeezähler",
+              style: TextStyle(color: darkMode ? Colors.white : Colors.black),
+            ),
             toolbarHeight: 50,
             elevation: 0,
             backgroundColor: Color(0xFF004E98),
@@ -183,7 +199,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 padding: EdgeInsets.only(top: 30, bottom: 30),
                 child: Text(
                   "Personenmanagement",
-                  style: TextStyle(fontSize: 20),
+                  style: TextStyle(
+                      fontSize: 20,
+                      color: darkMode ? Colors.white : Colors.black),
                 ),
               ),
               Container(
@@ -252,7 +270,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       itemBuilder: (context, index) {
                         return ListTile(
                             title: Text(
-                                "${users[index].name} / ${users[index].clicks} Kaffeetassen"),
+                              "${users[index].name} / ${users[index].clicks} Kaffeetassen",
+                              style: TextStyle(
+                                  color:
+                                      darkMode ? Colors.white : Colors.black),
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -301,15 +323,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               orElse: () => null)) ==
           null) {
         await firebaseHandler.addDocument(
-          controller.text,
-          <String, dynamic>{
+          document: controller.text,
+          data: <String, dynamic>{
             'name': controller.text,
             'clicks': 0,
-            'record': 0,
           },
         ).then((value) {
           setState(() {
-            users.add(new Users(clicks: 0, record: 0, name: controller.text));
+            users.add(new Users(clicks: 0, name: controller.text));
           });
         });
       } else {
@@ -358,10 +379,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void applyEdits(int index, int newClicks) async {
-    await firebaseHandler
-        .writeData("userdata", users[index].name, <String, dynamic>{
-      'clicks': newClicks,
-    }).then((value) {
+    await firebaseHandler.writeData(
+        collection: "userdata",
+        document: users[index].name,
+        data: <String, dynamic>{
+          'clicks': newClicks,
+        }).then((value) {
       setState(() {
         users[index].clicks = newClicks;
       });
