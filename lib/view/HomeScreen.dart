@@ -18,6 +18,8 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController controller = TextEditingController();
   final FirebaseHandler firebaseHandler = FirebaseHandler();
 
+  int mustPayAt = 0;
+
   bool darkMode = false;
 
   String lastMonth = "";
@@ -318,11 +320,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void initializeUsers() async {
+    await firebaseHandler
+        .readData(collection: "security", document: "month")
+        .then((value) {
+      setState(() {
+        mustPayAt = value['mustPayAt'];
+      });
+    });
     await firebaseHandler.readData().then((value) {
       List tmp2 = [];
       tmp2 = value.docs.map((doc) => doc.data()).toList();
       tmp2.forEach((element) async {
-        if (element['clicks'] - element['paidAt'] >= 50) {
+        if (element['clicks'] - element['paidAt'] >= mustPayAt) {
           await firebaseHandler.writeData(
               collection: "userdata",
               document: element['name'],

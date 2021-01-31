@@ -18,6 +18,8 @@ class _SummaryScreenState extends State<SummaryScreen> {
 
   int month = 0;
 
+  int mustPayAt = 0;
+
   List<String> collectionList = [
     "userdata",
     "bfthis",
@@ -33,11 +35,18 @@ class _SummaryScreenState extends State<SummaryScreen> {
   }
 
   void init() async {
+    await firebaseHandler
+        .readData(collection: "security", document: "month")
+        .then((value) {
+      setState(() {
+        mustPayAt = value['mustPayAt'];
+      });
+    });
     List tmp = [];
     await firebaseHandler.readData(collection: "userdata").then((value) {
       tmp = value.docs.map((doc) => doc.data()).toList();
       tmp.forEach((element) async {
-        if (element['clicks'] - element['paidAt'] >= 50) {
+        if (element['clicks'] - element['paidAt'] >= mustPayAt) {
           await firebaseHandler.writeData(
               collection: "userdata",
               document: element['name'],
@@ -70,7 +79,7 @@ class _SummaryScreenState extends State<SummaryScreen> {
         .then((value) {
       List tmp = value.docs.map((doc) => doc.data()).toList();
       tmp.forEach((element) {
-        if ((element['clicks'] - element['paidAt']) > 50) {
+        if ((element['clicks'] - element['paidAt']) >= mustPayAt) {
           firebaseHandler.writeData(
               collection: collectionList[month],
               document: element['name'],
