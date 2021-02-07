@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:kaffeekanne_web/model/data/Users.dart';
 import 'package:kaffeekanne_web/model/services/FirebaseHandler.dart';
+import 'package:pinput/pin_put/pin_put.dart';
 
 import 'HomeScreen.dart';
 import 'SettingsScreen.dart';
@@ -17,6 +18,10 @@ class _SummaryScreenState extends State<SummaryScreen> {
   bool darkMode = false;
 
   int month = 0;
+
+  bool wrong = false;
+
+  TextEditingController pinController = TextEditingController();
 
   int mustPayAt = 0;
 
@@ -376,31 +381,180 @@ class _SummaryScreenState extends State<SummaryScreen> {
                             : Colors.green,
                       ),
                       onPressed: () async {
-                        await firebaseHandler.writeData(
-                            collection: collectionList[month],
-                            document: tmpUsers[index].name,
-                            data: <String, dynamic>{
-                              'paymentRequired': false,
-                              'paidAt': tmpUsers[index].clicks,
-                            });
-                        setState(() {
-                          users = [];
-                        });
-                        await firebaseHandler
-                            .readData(collection: collectionList[month])
-                            .then((value) {
-                          List tmp =
-                              value.docs.map((doc) => doc.data()).toList();
-                          tmp.forEach((element) {
-                            setState(() {
-                              users.add(Users(
-                                name: element['name'],
-                                clicks: element['clicks'],
-                                paymentRequired: element['paymentRequired'],
-                                paidAt: element['paidAt'],
-                              ));
-                            });
-                          });
+                        firebaseHandler.readKey().then((value) {
+                          if (value["key_enabled"]) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) {
+                                return WillPopScope(
+                                    child: AlertDialog(
+                                      backgroundColor: Color(0xFF363333),
+                                      actions: [
+                                        Container(
+                                          padding: EdgeInsets.all(15),
+                                          // ignore: deprecated_member_use
+                                          child: FlatButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        HomeScreen(),
+                                                  ));
+                                            },
+                                            child: Text(
+                                              "Abbrechen",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                      scrollable: false,
+                                      content: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Container(
+                                            child: Text(
+                                              "PIN eingeben",
+                                              style: TextStyle(
+                                                  color: Colors.white),
+                                            ),
+                                            padding:
+                                                EdgeInsets.only(bottom: 40),
+                                          ),
+                                          Container(
+                                            height: 100,
+                                            child: PinPut(
+                                              textStyle: TextStyle(
+                                                  color: darkMode
+                                                      ? Colors.white
+                                                      : Colors.black),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              controller: pinController,
+                                              validator: (element) {
+                                                if (wrong) {
+                                                  pinController.text = "";
+                                                  return "Falsche Pin";
+                                                } else {
+                                                  return '';
+                                                }
+                                              },
+                                              withCursor: true,
+                                              autofocus: true,
+                                              focusNode: FocusNode(
+                                                canRequestFocus: true,
+                                              ),
+                                              eachFieldHeight: 20,
+                                              followingFieldDecoration:
+                                                  BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      border: Border.all(
+                                                          color:
+                                                              Color(0xFF004E98),
+                                                          width: 2)),
+                                              disabledDecoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                      color: Color(0xFF004E98),
+                                                      width: 2)),
+                                              selectedFieldDecoration:
+                                                  BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      border: Border.all(
+                                                          color:
+                                                              Color(0xFF004E98),
+                                                          width: 2)),
+                                              submittedFieldDecoration:
+                                                  BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              12),
+                                                      border: Border.all(
+                                                          color:
+                                                              Color(0xFF004E98),
+                                                          width: 2)),
+                                              fieldsCount: 4,
+                                              onSubmit: (value1) async {
+                                                if (value1 ==
+                                                    value["pin"].toString()) {
+                                                  Navigator.pop(context);
+                                                  await firebaseHandler
+                                                      .writeData(
+                                                          collection:
+                                                              collectionList[
+                                                                  month],
+                                                          document:
+                                                              tmpUsers[index]
+                                                                  .name,
+                                                          data: <String,
+                                                              dynamic>{
+                                                        'paymentRequired':
+                                                            false,
+                                                        'paidAt':
+                                                            tmpUsers[index]
+                                                                .clicks,
+                                                      });
+                                                  setState(() {
+                                                    users = [];
+                                                  });
+                                                  await firebaseHandler
+                                                      .readData(
+                                                          collection:
+                                                              collectionList[
+                                                                  month])
+                                                      .then((value) {
+                                                    List tmp = value.docs
+                                                        .map(
+                                                            (doc) => doc.data())
+                                                        .toList();
+                                                    tmp.forEach((element) {
+                                                      setState(() {
+                                                        users.add(Users(
+                                                          name: element['name'],
+                                                          clicks:
+                                                              element['clicks'],
+                                                          paymentRequired: element[
+                                                              'paymentRequired'],
+                                                          paidAt:
+                                                              element['paidAt'],
+                                                        ));
+                                                      });
+                                                    });
+                                                  });
+                                                } else {
+                                                  setState(() => wrong = true);
+                                                  Future.delayed(
+                                                      Duration(
+                                                          milliseconds: 500),
+                                                      () {
+                                                    setState(
+                                                        () => wrong = false);
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    // ignore: missing_return
+                                    onWillPop: () {});
+                              },
+                            );
+                          }
                         });
                       },
                     ),

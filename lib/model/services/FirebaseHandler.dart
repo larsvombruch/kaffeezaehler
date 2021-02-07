@@ -22,17 +22,19 @@ class FirebaseHandler {
 
   Future writeData(
       {String collection, String document, Map<String, dynamic> data}) async {
-    await firebaseFirestore.collection(collection).doc(document).update(data);
+    await firebaseFirestore
+        .collection(collection)
+        .doc(document)
+        .set(data, SetOptions(merge: true));
   }
 
   Future resetClicks() async {
     List<Users> users = [];
-    await readData().then((value) async {
+    await readData().then((value) {
       List tmp = [];
       tmp = value.docs.map((doc) => doc.data()).toList();
       tmp.forEach((element) {
         users.add(new Users(
-          clicks: element['clicks'],
           name: element['name'],
         ));
       });
@@ -40,7 +42,11 @@ class FirebaseHandler {
         await writeData(
             collection: "userdata",
             document: element.name,
-            data: <String, dynamic>{'clicks': 0});
+            data: <String, dynamic>{
+              'clicks': 0,
+              'paymentRequired': false,
+              'paidAt': 0
+            });
       });
     });
   }

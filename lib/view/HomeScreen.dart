@@ -71,40 +71,61 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void handleNewMonth() async {
-    users.forEach((element) async {
-      await firebaseHandler.writeData(
-        collection: "bfthis",
-        document: element.name,
-        data: <String, dynamic>{'clicks': element.clicks},
-      );
-    });
-    await firebaseHandler.readData(collection: "bfthis").then((value) {
-      List tmp = value.docs.map((doc) => doc.data()).toList();
-      tmp.forEach((element) async {
-        await firebaseHandler.writeData(
-            collection: "bfbfthis",
-            document: element.name,
-            data: {'clicks': element.clicks});
-      });
-    });
-    await firebaseHandler.readData(collection: "bfbfthis").then((value) {
-      List tmp = value.docs.map((doc) => doc.data()).toList();
-      tmp.forEach((element) async {
-        await firebaseHandler.writeData(
-            collection: "bfbfbfthis",
-            document: element.name,
-            data: {'clicks': element.clicks});
-      });
-    });
+    //month 3 to month 4
     await firebaseHandler.readData(collection: "bfbfbfthis").then((value) {
       List tmp = value.docs.map((doc) => doc.data()).toList();
       tmp.forEach((element) async {
         await firebaseHandler.writeData(
             collection: "bfbfbfbfthis",
             document: element.name,
-            data: {'clicks': element.clicks});
+            data: {
+              'clicks': element.clicks,
+              'paidAt': element.paidAt,
+              'paymentRequired': element.paymentRequired,
+              'name': element.name
+            });
       });
     });
+    //month 2 to month 3
+    await firebaseHandler.readData(collection: "bfbfthis").then((value) {
+      List tmp = value.docs.map((doc) => doc.data()).toList();
+      tmp.forEach((element) async {
+        await firebaseHandler
+            .writeData(collection: "bfbfbfthis", document: element.name, data: {
+          'clicks': element.clicks,
+          'paidAt': element.paidAt,
+          'paymentRequired': element.paymentRequired,
+          'name': element.name
+        });
+      });
+    });
+    //month 1 to month 2
+    await firebaseHandler.readData(collection: "bfthis").then((value) {
+      List tmp = value.docs.map((doc) => doc.data()).toList();
+      tmp.forEach((element) async {
+        await firebaseHandler
+            .writeData(collection: "bfbfthis", document: element.name, data: {
+          'clicks': element.clicks,
+          'paidAt': element.paidAt,
+          'paymentRequired': element.paymentRequired,
+          'name': element.name
+        });
+      });
+    });
+    //this month to month 1
+    users.forEach((element) async {
+      await firebaseHandler.writeData(
+        collection: "bfthis",
+        document: element.name,
+        data: {
+          'clicks': element.clicks,
+          'paidAt': element.paidAt,
+          'paymentRequired': element.paymentRequired,
+          'name': element.name
+        },
+      );
+    });
+
     await firebaseHandler.resetClicks();
   }
 
