@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kaffeekanne_web/model/core/SelectionCard.dart';
 import 'package:kaffeekanne_web/model/services/FirebaseHandler.dart';
@@ -17,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Users> top5 = [];
   TextEditingController controller = TextEditingController();
   final FirebaseHandler firebaseHandler = FirebaseHandler();
+  FirebaseAuth auth = FirebaseAuth.instance;
 
   int mustPayAt = 0;
 
@@ -49,6 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    Firebase.initializeApp();
+
     initializeUsers();
     compareMonth();
     getMostCafes();
@@ -345,6 +350,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void initializeUsers() async {
+    await auth.signInWithEmailAndPassword(
+        email: "root@rootmail.com", password: "root_password");
     await firebaseHandler
         .readData(collection: "security", document: "month")
         .then((value) {
